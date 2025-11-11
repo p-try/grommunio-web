@@ -123,8 +123,8 @@ if (!empty($_SESSION['url_action'])) {
             ?>
             <?php foreach($GLOBALS['mapisession']->getAllMessageStores() as $entryId => $store): ?>
                 <?php $entryIdHex = bin2hex($entryId); ?>
-                settings[<?php echo (($entryIdHex === $defaultMessageStoreIdHex) ? 'null' : json_encode($entryIdHex)) ?>] = <?php echo $GLOBALS['settings']->getJSON($entryIdHex); ?>;
-                persistentsettings[<?php echo (($entryIdHex === $defaultMessageStoreIdHex) ? 'null' :  json_encode($entryIdHex)) ?>] = <?php echo $GLOBALS['settings']->getPersistentSettingsJSON($entryIdHex); ?>;
+                settings[<?php echo (($entryIdHex === $defaultMessageStoreIdHex) ? 'null' : json_encode($entryIdHex)) ?>] = <?php echo (new Settings($entryIdHex))->getJSON(); ?>;
+                persistentsettings[<?php echo (($entryIdHex === $defaultMessageStoreIdHex) ? 'null' :  json_encode($entryIdHex)) ?>] = <?php echo (new Settings($entryIdHex))->getPersistentSettingsJSON(); ?>;
             <?php endforeach; ?>
 			languages 		= <?php echo $Language->getJSON(); ?>;
 			user 			= <?php echo json_encode($GLOBALS['mapisession']->getUserInfo()); ?>;

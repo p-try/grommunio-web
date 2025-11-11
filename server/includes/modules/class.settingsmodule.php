@@ -66,7 +66,7 @@ class SettingsModule extends Module {
 	 * @param mixed $type
 	 */
 	public function retrieveAll($type, $storeIdHex = null) {
-		$data = $GLOBALS['settings']->get(null, null, false, $storeIdHex);
+		$data = $this->getSettingsForStoreId($storeIdHex)->get(null, null, false, $storeIdHex);
 
 		$this->addActionData($type, $data);
 		$GLOBALS["bus"]->addData($this->getResponseData());
@@ -87,29 +87,29 @@ class SettingsModule extends Module {
 				foreach ($settings as $setting) {
 					if (isset($setting['path'], $setting['value'])) {
 						if ((bool) $persistent) {
-							$GLOBALS['settings']->setPersistent($setting['path'], $setting['value'], false, $storeIdHex);
+							$this->getSettingsForStoreId($storeIdHex)->setPersistent($setting['path'], $setting['value'], false, $storeIdHex);
 						}
 						else {
-							$GLOBALS['settings']->set($setting['path'], $setting['value'], false, false, $storeIdHex);
+							$this->getSettingsForStoreId($storeIdHex)->set($setting['path'], $setting['value'], false, false, $storeIdHex);
 						}
 					}
 				}
 			}
 			elseif (isset($settings['path'], $settings['value'])) {
 				if ((bool) $persistent) {
-					$GLOBALS['settings']->setPersistent($settings['path'], $settings['value'], false, $storeIdHex);
+					$this->getSettingsForStoreId($storeIdHex)->setPersistent($settings['path'], $settings['value'], false, $storeIdHex);
 				}
 				else {
-					$GLOBALS['settings']->set($settings['path'], $settings['value'], false, false, $storeIdHex);
+					$this->getSettingsForStoreId($storeIdHex)->set($settings['path'], $settings['value'], false, false, $storeIdHex);
 				}
 			}
 
 			// Finally save the settings, this can throw exception when it fails saving settings
 			if ((bool) $persistent) {
-				$GLOBALS['settings']->savePersistentSettings($storeIdHex);
+				$this->getSettingsForStoreId($storeIdHex)->savePersistentSettings($storeIdHex);
 			}
 			else {
-				$GLOBALS['settings']->saveSettings($storeIdHex);
+				$this->getSettingsForStoreId($storeIdHex)->saveSettings($storeIdHex);
 			}
 
 			// send success notification to client
@@ -127,15 +127,15 @@ class SettingsModule extends Module {
 			// we will delete the settings but wait with saving until the entire batch has been applied.
 			if (is_array($path)) {
 				foreach ($path as $item) {
-					$GLOBALS['settings']->delete($item, false, $storeIdHex);
+					$this->getSettingsForStoreId($storeIdHex)->delete($item, false, $storeIdHex);
 				}
 			}
 			else {
-				$GLOBALS['settings']->delete($path, false, $storeIdHex);
+				$this->getSettingsForStoreId($storeIdHex)->delete($path, false, $storeIdHex);
 			}
 
 			// Finally save the settings, this can throw exception when it fails saving settings
-			$GLOBALS['settings']->saveSettings($storeIdHex);
+			$this->getSettingsForStoreId($storeIdHex)->saveSettings($storeIdHex);
 
 			// send success notification to client
 			$this->sendFeedback(true);
@@ -171,4 +171,11 @@ class SettingsModule extends Module {
 		}
 		return false;
 	}
+
+    private function getSettingsForStoreId($storeIdHex = null) {
+        if ($storeIdHex === null) {
+            return $GLOBALS['settings'];
+        }
+        return (new Settings($storeIdHex));
+    }
 }

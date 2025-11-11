@@ -15,11 +15,12 @@ require __DIR__ . '/../exceptions/class.SettingsException.php';
  * </code>
  */
 class Settings {
-	/**
-	 * Optional HEX entryid of the current store this Settings instance operates on.
-	 * When null or 'default', the default message store is used.
-	 */
-	private $currentStoreIdHex = 'default';
+
+    /**
+     * Message store that the settings are saved in. Null for the user's default message store.
+     */
+    private $storeId = null;
+
 	/**
 	 * User's default message store where we will be storing all the settings in a property.
 	 */
@@ -76,7 +77,8 @@ class Settings {
 	 */
 	private $modifiedPersistent;
 
-	public function __construct() {
+	public function __construct($storeId = null) {
+        $this->storeId = $storeId;
 		$this->settings = [];
 		$this->persistentSettings = [];
 		$this->sysAdminDefaults = [];
@@ -86,57 +88,21 @@ class Settings {
 	}
 
 	/**
-	 * Ensure the Settings instance is initialized for the requested store.
-	 * If a different store is requested than currently initialized, reinitialize.
-	 *
-	 * @param string|null $storeIdHex HEX entryid of the message store, or null for default
-	 */
-	private function ensureInitForStore($storeIdHex = null) {
-		$requested = $storeIdHex ?? 'default';
-		if (!$this->init || $requested !== $this->currentStoreIdHex) {
-			$this->Init($storeIdHex);
-		}
-	}
-
-	/**
-	 * Resolve and set $this->store from an optional HEX store entryid.
-	 * @param string|null $storeIdHex
-	 */
-	private function resolveAndSetStore($storeIdHex = null) {
-		if ($storeIdHex && is_string($storeIdHex) && ctype_xdigit($storeIdHex)) {
-			try {
-				$this->store = $GLOBALS['mapisession']->openMessageStore(hex2bin($storeIdHex));
-				$this->currentStoreIdHex = $storeIdHex;
-				return;
-			}
-			catch (Exception) {
-				// Fall back to default if opening fails
-			}
-		}
-		$this->store = $GLOBALS['mapisession']->getDefaultMessageStore();
-		$this->currentStoreIdHex = 'default';
-	}
-
-	/**
 	 * Initialise the settings class.
 	 *
 	 * Opens the default store and gets the settings. This is done only once. Therefore
 	 * changes written to the settings after the first Init() call will be invisible to this
 	 * instance of the Settings class
 	 */
-	public function Init($storeIdHex = null) {
+	public function Init() {
 		$GLOBALS['PluginManager']->triggerHook('server.core.settings.init.before', ['settingsObj' => $this]);
 
-		// Reset per-store caches when (re)initializing
-		$this->settings = [];
-		$this->persistentSettings = [];
-		$this->settings_string = '';
-		$this->persistentSettingsString = '';
-
-		$this->resolveAndSetStore($storeIdHex);
-
-		// ignore exceptions when loading settings
+        // ignore exceptions when loading settings
 		try {
+            $this->store = $GLOBALS['mapisession']->getDefaultMessageStore();
+            if ($this->storeId && is_string($this->storeId) && ctype_xdigit($this->storeId)) {
+                $this->store = $GLOBALS['mapisession']->openMessageStore(hex2bin($this->storeId));
+            }
 			$this->retrieveSettings();
 			$this->retrievePersistentSettings();
 
@@ -160,8 +126,10 @@ class Settings {
 	 *
 	 * @return string Setting data, or $default if not found or null of no default is found
 	 */
-	public function get($path = null, $default = null, $persistent = false, $storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function get($path = null, $default = null, $persistent = false) {
+		if (!$this->init) {
+			$this->Init();
+		}
 
 		$settings = (bool) $persistent ? $this->persistentSettings : $this->settings;
 
@@ -195,8 +163,8 @@ class Settings {
 	 *
 	 * @return string Setting data, or $default if not found or null of no default is found
 	 */
- public function getPersistent($path = null, $default = null, $storeIdHex = null) {
-		return $this->get($path, $default, true, $storeIdHex);
+	public function getPersistent($path = null, $default = null) {
+		return $this->get($path, $default, true);
 	}
 
 	/**
@@ -210,8 +178,10 @@ class Settings {
 	 *                           this defaults to false as the settings will be saved at the end of the request
 	 * @param bool   $persistent true to set a persistent setting, false otherwise
 	 */
-	public function set($path, $value, $autoSave = false, $persistent = false, $storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function set($path, $value, $autoSave = false, $persistent = false) {
+		if (!$this->init) {
+			$this->Init();
+		}
 
 		if ((bool) $persistent) {
 			$this->modifiedPersistent[$path] = $value;
@@ -262,8 +232,8 @@ class Settings {
 	 * @param bool   $autoSave true to directly save the settings to the MAPI Store,
 	 *                         this defaults to false as the settings will be saved at the end of the request
 	 */
-	public function setPersistent($path, $value, $autoSave = false, $storeIdHex = null) {
-		return $this->set($path, $value, $autoSave, true, $storeIdHex);
+	public function setPersistent($path, $value, $autoSave = false) {
+		return $this->set($path, $value, $autoSave, true);
 	}
 
 	/**
@@ -275,8 +245,10 @@ class Settings {
 	 * @param bool   $autoSave true to directly save the settings to the MAPI Store,
 	 *                         this defaults to false as the settings will be saved at the end of the request
 	 */
- public function delete($path, $autoSave = false, $storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function delete($path, $autoSave = false) {
+		if (!$this->init) {
+			$this->Init();
+		}
 
 		$this->modified[$path] = '';
 		$path = explode('/', $path);
@@ -314,8 +286,10 @@ class Settings {
 	 *
 	 * @return string json encoded php array
 	 */
- public function getJSON($storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function getJSON() {
+		if (!$this->init) {
+			$this->Init();
+		}
 
 		return json_encode($this->settings);
 	}
@@ -328,8 +302,10 @@ class Settings {
 	 *
 	 * @return string json encoded php array
 	 */
- public function getPersistentSettingsJSON($storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function getPersistentSettingsJSON() {
+		if (!$this->init) {
+			$this->Init();
+		}
 
 		return json_encode($this->persistentSettings);
 	}
@@ -478,8 +454,10 @@ class Settings {
 	 * This function saves all settings to the store's PR_EC_WEBACCESS_SETTINGS_JSON property, and to the
 	 * PR_EC_OUTOFOFFICE_* properties.
 	 */
- public function saveSettings($storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function saveSettings() {
+		if (!$this->init) {
+			$this->Init();
+		}
 
 		if (isset($this->settings['zarafa']['v1'])) {
 			unset($this->settings['zarafa']['v1']['contexts']['mail']['outofoffice']);
@@ -567,8 +545,7 @@ class Settings {
 	 *
 	 * This function saves all persistent settings to the store's PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON property.
 	 */
- public function savePersistentSettings($storeIdHex = null) {
-		$this->ensureInitForStore($storeIdHex);
+	public function savePersistentSettings() {
 		$persistentSettings = json_encode(['settings' => $this->persistentSettings]);
 
 		// Check if the settings have been changed.
