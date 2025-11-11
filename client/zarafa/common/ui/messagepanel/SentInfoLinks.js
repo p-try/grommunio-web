@@ -145,7 +145,7 @@ Zarafa.common.ui.messagepanel.SentInfoLinks = Ext.extend(Ext.Container, {
 				 * @private
 				 */
 				isShortDateFormat: function() {
-					var dateFormat = container.settingsModel.get('zarafa/v1/main/datetime_display_format');
+					var dateFormat = container.getSettingsModel().get('zarafa/v1/main/datetime_display_format');
 					return (dateFormat === 'short');
 				},
 			});

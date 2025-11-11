@@ -604,7 +604,7 @@ Ext.apply(Date.prototype, {
 	*/
 	formatDefaultTime: function(formatString)
 	{
-		var timeFormat = container.settingsModel.get('zarafa/v1/main/datetime_time_format');
+		var timeFormat = container.getSettingsModel().get('zarafa/v1/main/datetime_time_format');
 		var newFormat;
 
 		if (Ext.isDefined(formatString)) {

@@ -177,7 +177,7 @@ Zarafa.calendar.printer.DaysViewRenderer = Ext.extend(Zarafa.calendar.printer.Ab
 				var multiYear = start.getYear() !== end.getYear();
 
 				// Multi day and multi year format
-				var timeFormat = container.settingsModel.get('zarafa/v1/main/datetime_time_format');
+				var timeFormat = container.getSettingsModel().get('zarafa/v1/main/datetime_time_format');
 				var multiTimeFormat;
 
 				// Todo check if multiday can be shown in different days (works for multi year)

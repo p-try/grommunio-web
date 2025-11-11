@@ -40,7 +40,7 @@ Zarafa.common.ui.DateTimePeriodField = Ext.extend(Zarafa.common.ui.DateRangeFiel
 		config.hideLabels = true;
 		Ext.apply(this, config);
 
-		this.timeFormat = config.timeFormat || container.settingsModel.get('zarafa/v1/main/datetime_time_format');
+		this.timeFormat = config.timeFormat || container.getSettingsModel().get('zarafa/v1/main/datetime_time_format');
 
 		config.startFieldConfig = Ext.applyIf(config.startFieldConfig || {}, {
 			xtype: 'zarafa.datetimefield',

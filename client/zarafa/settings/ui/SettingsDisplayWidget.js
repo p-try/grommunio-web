@@ -281,7 +281,7 @@ Zarafa.settings.ui.SettingsDisplayWidget = Ext.extend(Zarafa.settings.ui.Setting
 	onRadioChangeTimeFormat: function(field, radio)
 	{
 		if (this.model) {
-			var timeFormatString = container.settingsModel.get('zarafa/v1/main/datetime_time_format');
+			var timeFormatString = container.getSettingsModel().get('zarafa/v1/main/datetime_time_format');
 			if (timeFormatString !== radio.inputValue) {
 				if (radio.inputValue === 'G:i') {
 					this.model.set(this.datetimeTimeformat.name, Zarafa.common.data.TimeFormat.TWENTYFOURHOUR);
