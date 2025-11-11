@@ -405,7 +405,7 @@ Zarafa.settings.SettingsModel = Ext.extend(Ext.util.Observable, {
 			container.getRequest().singleRequest(
 				Zarafa.core.ModuleNames.getListName('settings'),
 				action,
-				{ 'setting': parameters, 'storeId': this.storeId },
+				{ 'setting': parameters, 'store_entryid': this.storeId },
 				new Zarafa.core.data.ProxyResponseHandler({
 					proxy: this,
 					action: Ext.data.Api.actions['update'],

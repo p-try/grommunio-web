@@ -37,7 +37,7 @@ Zarafa.settings.PersistentSettingsModel = Ext.extend(Zarafa.settings.SettingsMod
 				action,
 				{
 					'persistentSetting': parameters,
-                    'store': this.store,
+                    'store_entryid': this.store,
 				},
 				new Zarafa.core.data.ProxyResponseHandler({
 					proxy: this,

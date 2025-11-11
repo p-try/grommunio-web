@@ -22,26 +22,30 @@ class SettingsModule extends Module {
 		foreach ($this->data as $actionType => $action) {
 			if (isset($actionType)) {
 				try {
+					$storeIdHex = $this->getStoreIdHexFromAction($action);
 					switch ($actionType) {
 						case "retrieveAll":
-							$this->retrieveAll($actionType);
+							$this->retrieveAll($actionType, $storeIdHex);
 							break;
 
 						case "set":
 							if (isset($action["setting"])) {
-								$this->set($action["setting"], false);
+								$this->set($action["setting"], false, $storeIdHex);
 							}
 							if (isset($action["persistentSetting"])) {
-								$this->set($action["persistentSetting"], true);
+								$this->set($action["persistentSetting"], true, $storeIdHex);
 							}
 							break;
 
 						case "delete":
 						case "reset":
-							$userStore = $GLOBALS['mapisession']->getDefaultMessageStore();
-							$inbox = mapi_msgstore_getreceivefolder($userStore);
+							$store = $this->openStoreFromHex($storeIdHex);
+							if ($store === false) {
+								$store = $GLOBALS['mapisession']->getDefaultMessageStore();
+							}
+							$inbox = mapi_msgstore_getreceivefolder($store);
 							mapi_deleteprops($inbox, [PR_ADDITIONAL_REN_ENTRYIDS_EX, PR_ADDITIONAL_REN_ENTRYIDS]);
-							$this->delete($action["setting"]);
+							$this->delete($action["setting"], $storeIdHex);
 							break;
 
 						default:
@@ -61,8 +65,8 @@ class SettingsModule extends Module {
 	 *
 	 * @param mixed $type
 	 */
-	public function retrieveAll($type) {
-		$data = $GLOBALS['settings']->get();
+	public function retrieveAll($type, $storeIdHex = null) {
+		$data = $GLOBALS['settings']->get(null, null, false, $storeIdHex);
 
 		$this->addActionData($type, $data);
 		$GLOBALS["bus"]->addData($this->getResponseData());
@@ -76,36 +80,36 @@ class SettingsModule extends Module {
 	 * @param bool  $persistent If true the settings will be stored in the persistent settings
 	 *                          as opposed to the normal settings
 	 */
-	public function set($settings, $persistent = false) {
+	public function set($settings, $persistent = false, $storeIdHex = null) {
 		if (isset($settings)) {
 			// we will set the settings but wait with saving until the entire batch has been applied.
 			if (is_array($settings)) {
 				foreach ($settings as $setting) {
 					if (isset($setting['path'], $setting['value'])) {
 						if ((bool) $persistent) {
-							$GLOBALS['settings']->setPersistent($setting['path'], $setting['value']);
+							$GLOBALS['settings']->setPersistent($setting['path'], $setting['value'], false, $storeIdHex);
 						}
 						else {
-							$GLOBALS['settings']->set($setting['path'], $setting['value']);
+							$GLOBALS['settings']->set($setting['path'], $setting['value'], false, false, $storeIdHex);
 						}
 					}
 				}
 			}
 			elseif (isset($settings['path'], $settings['value'])) {
 				if ((bool) $persistent) {
-					$GLOBALS['settings']->setPersistent($settings['path'], $settings['value']);
+					$GLOBALS['settings']->setPersistent($settings['path'], $settings['value'], false, $storeIdHex);
 				}
 				else {
-					$GLOBALS['settings']->set($settings['path'], $settings['value']);
+					$GLOBALS['settings']->set($settings['path'], $settings['value'], false, false, $storeIdHex);
 				}
 			}
 
 			// Finally save the settings, this can throw exception when it fails saving settings
 			if ((bool) $persistent) {
-				$GLOBALS['settings']->savePersistentSettings();
+				$GLOBALS['settings']->savePersistentSettings($storeIdHex);
 			}
 			else {
-				$GLOBALS['settings']->saveSettings();
+				$GLOBALS['settings']->saveSettings($storeIdHex);
 			}
 
 			// send success notification to client
@@ -118,23 +122,53 @@ class SettingsModule extends Module {
 	 *
 	 * @param $path string/array path of the setting that needs to be deleted
 	 */
-	public function delete($path) {
+	public function delete($path, $storeIdHex = null) {
 		if (isset($path)) {
 			// we will delete the settings but wait with saving until the entire batch has been applied.
 			if (is_array($path)) {
 				foreach ($path as $item) {
-					$GLOBALS['settings']->delete($item);
+					$GLOBALS['settings']->delete($item, false, $storeIdHex);
 				}
 			}
 			else {
-				$GLOBALS['settings']->delete($path);
+				$GLOBALS['settings']->delete($path, false, $storeIdHex);
 			}
 
 			// Finally save the settings, this can throw exception when it fails saving settings
-			$GLOBALS['settings']->saveSettings();
+			$GLOBALS['settings']->saveSettings($storeIdHex);
 
 			// send success notification to client
 			$this->sendFeedback(true);
 		}
+	}
+
+	/**
+	 * Extract HEX store entryid from an action payload (if provided).
+	 */
+	private function getStoreIdHexFromAction($action) {
+		if (isset($action["store_entryid"])) {
+			$se = $action["store_entryid"];
+			if (is_array($se) && count($se) > 0) {
+				$se = $se[0];
+			}
+			if (is_string($se) && ctype_xdigit((string) $se)) {
+				return $se;
+			}
+		}
+		return null; // default store
+	}
+
+	/**
+	 * Try to open a message store from HEX entryid. Returns false on failure.
+	 */
+	private function openStoreFromHex($storeIdHex) {
+		try {
+			if ($storeIdHex && is_string($storeIdHex) && ctype_xdigit((string) $storeIdHex)) {
+				return $GLOBALS['mapisession']->openMessageStore(hex2bin((string) $storeIdHex));
+			}
+		}
+		catch (Exception) {
+		}
+		return false;
 	}
 }
