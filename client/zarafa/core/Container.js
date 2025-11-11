@@ -52,6 +52,17 @@ Zarafa.core.Container = Ext.extend(Ext.util.Observable, {
 	 */
 	widgetsMetaData: undefined,
 
+    /**
+     * The settings models for all message stores, keyed by store ID.
+     */
+    settingsModel: {},
+
+    /**
+     * The persistent settings models for all message stores, keyed by store ID.
+     */
+    persistentSettingsModel: {},
+
+
 	/**
 	 * @constructor
 	 */
@@ -302,9 +313,13 @@ Zarafa.core.Container = Ext.extend(Ext.util.Observable, {
 	 * Returns the global {@link Zarafa.settings.SettingsModel SettingsModel} instance.
 	 * @return {Zarafa.settings.SettingsModel} the global {@link Zarafa.settings.SettingsModel SettingsModel} instance.
 	 */
-	getSettingsModel: function()
+	getSettingsModel: function(storeId)
 	{
-		return this.settingsModel || (this.settingsModel = new Zarafa.settings.SettingsModel());
+        storeId = storeId || null;
+        if (!this.settingsModel[storeId]) {
+            this.settingsModel[storeId] = new Zarafa.settings.SettingsModel({store: storeId});
+        }
+        return this.settingsModel[storeId];
 	},
 
 	/**
@@ -312,10 +327,15 @@ Zarafa.core.Container = Ext.extend(Ext.util.Observable, {
 	 * @return {Zarafa.settings.PersistentSettingsModel} the global
 	 * {@link Zarafa.settings.PersistentSettingsModel PersistentSettingsModel} instance.
 	 */
-	getPersistentSettingsModel: function()
+	getPersistentSettingsModel: function(storeId)
 	{
-		return this.persistentSettingsModel || (this.persistentSettingsModel = new Zarafa.settings.PersistentSettingsModel());
-	},
+        storeId = storeId || null;
+        if (!this.persistentSettingsModel[storeId]) {
+            this.persistentSettingsModel[storeId] = new Zarafa.settings.PersistentSettingsModel({store: storeId});
+        }
+        return this.persistentSettingsModel[storeId];
+
+    },
 
 	/**
 	 * Returns the {@link Zarafa.core.data.ShadowStore ShadowStore} instance.

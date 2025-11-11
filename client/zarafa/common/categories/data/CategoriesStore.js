@@ -22,6 +22,8 @@ Zarafa.common.categories.data.CategoriesStore = Ext.extend(Ext.data.ArrayStore, 
 	 */
 	settingsKey: 'grommunio/main/categories',
 
+    persistentSettingsModel: null,
+
 	/**
 	 * @constructor
 	 * @param {Object} config Configuration structure
@@ -31,9 +33,13 @@ Zarafa.common.categories.data.CategoriesStore = Ext.extend(Ext.data.ArrayStore, 
 		config = config || {};
 		var categories = [];
 
-		var storedCategories = container.getPersistentSettingsModel().get(this.settingsKey);
+        this.persistentSettingsModel = container.getPersistentSettingsModel(
+            config.storeId || null
+        );
+
+		var storedCategories = this.persistentSettingsModel.get(this.settingsKey);
 		if ( storedCategories ) {
-			categories = categories.concat(container.getPersistentSettingsModel().get(this.settingsKey));
+			categories = categories.concat(this.persistentSettingsModel.get(this.settingsKey));
 		}
 		categories = categories.concat(container.populateInsertionPoint('main.categories'));
 
@@ -144,7 +150,7 @@ Zarafa.common.categories.data.CategoriesStore = Ext.extend(Ext.data.ArrayStore, 
 			};
 		});
 
-		container.getPersistentSettingsModel().set(this.settingsKey, categories);
+		this.persistentSettingsModel.set(this.settingsKey, categories);
 	},
 
 	/**

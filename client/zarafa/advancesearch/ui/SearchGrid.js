@@ -196,7 +196,7 @@ Zarafa.advancesearch.ui.SearchGrid = Ext.extend(Zarafa.common.ui.grid.MapiMessag
 
 			cssClass += ' with-categories';
 			var categories = Zarafa.common.categories.Util.getCategories(record);
-			var categoriesHtml = Zarafa.common.categories.Util.getCategoriesHtml(categories);
+			var categoriesHtml = Zarafa.common.categories.Util.getCategoriesHtml(categories, record);
 			var category = '<div class="k-category"><div class="k-category-add-container"><span class="k-category-add"></span></div><div class="k-category-container">' + categoriesHtml + '</div></div>';
 
 			// Get the subject cell content

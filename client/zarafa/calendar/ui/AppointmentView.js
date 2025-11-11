@@ -347,7 +347,7 @@ Zarafa.calendar.ui.AppointmentView = Ext.extend(Zarafa.calendar.ui.AbstractDateR
 		// Note: If a label has been set, then it will have been added as the last
 		// category by the getCategories method
 		if ( this.isActive() &&  !Ext.isEmpty(categories) ){
-			return Zarafa.common.categories.Util.getCategoryColor(categories.pop());
+			return Zarafa.common.categories.Util.getCategoryColor(categories.pop(), this.record);
 		}
 
 		// If no category is set then default back to the color scheme of the calendar

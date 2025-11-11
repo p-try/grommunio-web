@@ -259,7 +259,7 @@ Zarafa.contact.ui.ContactCardView = Ext.extend(Zarafa.common.ui.DraggableDataVie
 			{
 				var record = this.store.getById(values.entryid);
 				var categories = Zarafa.common.categories.Util.getCategories(record);
-				return Zarafa.common.categories.Util.getCategoriesHtml(categories);
+				return Zarafa.common.categories.Util.getCategoriesHtml(categories, record);
 			}
 		});
 	}

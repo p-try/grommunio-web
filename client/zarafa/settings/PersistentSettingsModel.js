@@ -20,7 +20,6 @@ Zarafa.settings.PersistentSettingsModel = Ext.extend(Zarafa.settings.SettingsMod
         if (!Ext.isObject(config.defaults)) {
 			config.defaults = Zarafa.settings.data.PersistentSettingsDefaultValue.getDefaultValues();
 		}
-
 		Zarafa.settings.PersistentSettingsModel.superclass.constructor.call(this, config);
     },
 
@@ -37,7 +36,8 @@ Zarafa.settings.PersistentSettingsModel = Ext.extend(Zarafa.settings.SettingsMod
 				Zarafa.core.ModuleNames.getListName('settings'),
 				action,
 				{
-					'persistentSetting': parameters
+					'persistentSetting': parameters,
+                    'store': this.store,
 				},
 				new Zarafa.core.data.ProxyResponseHandler({
 					proxy: this,

@@ -91,6 +91,11 @@ Zarafa.settings.SettingsModel = Ext.extend(Ext.util.Observable, {
 	 */
 	requiresReload: false,
 
+    /**
+     * The store ID that this settings model belongs to. Null for the default user's store.
+     */
+    storeId: null,
+
 	/**
 	 * @constructor
 	 * @param config Configuration structure
@@ -400,7 +405,7 @@ Zarafa.settings.SettingsModel = Ext.extend(Ext.util.Observable, {
 			container.getRequest().singleRequest(
 				Zarafa.core.ModuleNames.getListName('settings'),
 				action,
-				{ 'setting': parameters},
+				{ 'setting': parameters, 'storeId': this.storeId },
 				new Zarafa.core.data.ProxyResponseHandler({
 					proxy: this,
 					action: Ext.data.Api.actions['update'],

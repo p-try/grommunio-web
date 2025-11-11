@@ -112,7 +112,7 @@ Zarafa.common.ui.grid.Renderers = {
 	{
 		// Render the categories
 		var categories = Zarafa.common.categories.Util.getCategories(record);
-		return Zarafa.common.categories.Util.getCategoriesHtml(categories);
+		return Zarafa.common.categories.Util.getCategoriesHtml(categories, record);
 	},
 
 	/**

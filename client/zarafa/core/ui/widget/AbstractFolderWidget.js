@@ -181,7 +181,7 @@ Zarafa.core.ui.widget.AbstractFolderWidget = Ext.extend(Zarafa.core.ui.widget.Wi
 
 		// Render the categories
 		var categories = Zarafa.common.categories.Util.getCategories(record);
-		var categoriesHtml = Zarafa.common.categories.Util.getCategoriesHtml(categories);
+		var categoriesHtml = Zarafa.common.categories.Util.getCategoriesHtml(categories, record);
 		rowParams.body += '<div class="k-category-container">' + categoriesHtml + '</div>';
 
 		// Render the subject

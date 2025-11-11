@@ -640,7 +640,7 @@ if (!defined("MAX_FTS_RESULT_ITEMS")) {
  * The following options are taken from the debug.php
  */
 if (!defined("DEBUG_LOADER")) {
-	define("DEBUG_LOADER", LOAD_RELEASE);
+	define("DEBUG_LOADER", LOAD_SOURCE);
 }
 // Enable additional logging around the SQLite full-text search pipeline when troubleshooting search issues.
 if (!defined("DEBUG_FULLTEXT_SEARCH")) {

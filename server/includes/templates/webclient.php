@@ -116,8 +116,16 @@ if (!empty($_SESSION['url_action'])) {
 
 		<script><?php require BASE_PATH . 'client/resize.js'; ?></script>
 		<script>
-			settings 		= <?php echo $GLOBALS["settings"]->getJSON(); ?>;
-			persistentsettings      = <?php echo $GLOBALS["settings"]->getPersistentSettingsJSON(); ?>;
+            settings = {};
+            persistentsettings = {};
+            <?php
+            $defaultMessageStoreIdHex = $GLOBALS['mapisession']->getDefaultMessageStoreEntryId();
+            ?>
+            <?php foreach($GLOBALS['mapisession']->getAllMessageStores() as $entryId => $store): ?>
+                <?php $entryIdHex = bin2hex($entryId); ?>
+                settings[<?php echo (($entryIdHex === $defaultMessageStoreIdHex) ? 'null' : json_encode($entryIdHex)) ?>] = <?php echo (new Settings($entryId))->getJSON(); ?>;
+                persistentsettings[<?php echo (($entryIdHex === $defaultMessageStoreIdHex) ? 'null' :  json_encode($entryIdHex)) ?>] = <?php echo (new Settings($entryId))->getPersistentSettingsJSON(); ?>;
+            <?php endforeach; ?>
 			languages 		= <?php echo $Language->getJSON(); ?>;
 			user 			= <?php echo json_encode($GLOBALS['mapisession']->getUserInfo()); ?>;
 			version 		= <?php echo json_encode($versionInfo); ?>;

@@ -201,7 +201,7 @@ Ext.apply(Zarafa, {
 		delete serverconfig;
 
 		// Load all settings
-		container.getSettingsModel().initialize(settings);
+        Object.keys(settings).forEach(messageStoreId => container.getSettingsModel(messageStoreId).initialize(settings));
 		delete settings;
 
 		// Set Onlyoffice theme
@@ -214,7 +214,7 @@ Ext.apply(Zarafa, {
 		// Load all persistent settings (i.e. settings that will not be deleted when the user resets his settings)
 		// Persistent settings are not added to the welcome screen, so check if they exist first.
 		if ( Ext.isDefined(window.persistentsettings) ){
-			container.getPersistentSettingsModel().initialize(window.persistentsettings);
+            Object.keys(window.persistentsettings).forEach(messageStoreId => container.getPersistentSettingsModel(messageStoreId).initialize(window.persistentsettings));
 			delete window.persistentsettings;
 		}
 

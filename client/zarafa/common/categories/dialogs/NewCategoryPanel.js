@@ -127,7 +127,10 @@ Zarafa.common.categories.dialogs.NewCategoryPanel = Ext.extend(Zarafa.core.ui.Co
 			return;
 		}
 
-		var categoryStore = new Zarafa.common.categories.data.CategoriesStore();
+        var categoryStore = new Zarafa.common.categories.data.CategoriesStore();
+        if ( Ext.isDefined(this.store) ) {
+            categoryStore = this.store
+        }
 		var categoryColor = this.formPanel.color.getValue();
 		var quickAccess = this.formPanel.pin.getValue();
 
@@ -137,8 +140,6 @@ Zarafa.common.categories.dialogs.NewCategoryPanel = Ext.extend(Zarafa.core.ui.Co
 
 		// Also add the new category to the store of the grid in the manage category dialog
 		if ( Ext.isDefined(this.store) ){
-			this.store.addCategory(categoryName, categoryColor, quickAccess);
-
 			// scroll the new category into view, put the focus on it and select it
 			var rowIndex = this.store.findExact('category', categoryName);
 			this.grid.getView().focusRow(rowIndex);

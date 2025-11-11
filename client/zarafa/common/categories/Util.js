@@ -12,7 +12,7 @@ Zarafa.common.categories.Util = {
 	 * @property
 	 * @type {Zarafa.common.categories.data.CategoriesStore}
 	 */
-	categoriesStore: null,
+	categoriesStore: {},
 
 	/**
 	 * The color that will be used for labels of categories that don't have a color. It is a rbg hex string.
@@ -42,9 +42,23 @@ Zarafa.common.categories.Util = {
 	 * If any changes are done to the categories, the code that did the change must
 	 * call this function!
 	 */
-	loadCategoriesStore: function()
+	loadCategoriesStore: function(source)
 	{
-		this.categoriesStore = new Zarafa.common.categories.data.CategoriesStore();
+		// Accepts either:
+		// - a record or array of records
+		// - a storeId string
+		// - a CategoriesStore instance
+		// - undefined/null (falls back to default store)
+		var storeId = null;
+		if (Ext.isString(source)) {
+			storeId = source;
+		} else if (source && source.persistentSettingsModel) {
+			// Derive storeId from the CategoriesStore instance (falls back to default if not available)
+			storeId = source.persistentSettingsModel.storeId || null;
+		} else {
+			storeId = this.getStoreIdFromRecords(source);
+		}
+		this.categoriesStore[storeId] = new Zarafa.common.categories.data.CategoriesStore({storeId: storeId});
 	},
 
 	/**
@@ -101,16 +115,17 @@ Zarafa.common.categories.Util = {
 
 		// Instantiate the category store only once. If any changes are done to the
 		// managed category list, the code that did the change must call {#loadCategoriesStore}!
-		if ( !this.categoriesStore ){
-			this.loadCategoriesStore();
+        var storeId = this.getStoreIdFromRecords(record);
+		if ( !this.categoriesStore[storeId] ){
+			this.loadCategoriesStore(record);
 		}
 
 		// If a category exists in the managed category list we must make sure we will use
 		// the name in the list to avoid case sensitivity issues.
 		categories = categories.map(function(category){
-			var index = this.categoriesStore.findExactCaseInsensitive('category', category);
+			var index = this.categoriesStore[storeId].findExactCaseInsensitive('category', category);
 			if ( index>=0 ){
-				return this.categoriesStore.getAt(index).get('category');
+				return this.categoriesStore[storeId].getAt(index).get('category');
 			}
 
 			return category;
@@ -361,19 +376,21 @@ Zarafa.common.categories.Util = {
 	 * Returns the color (css) for the given category
 	 *
 	 * @param {String} category The category name
+	 * @param record The record holding the category
 	 * @return {String} The color of the category (hex code)
 	 */
-	getCategoryColor: function(category)
+	getCategoryColor: function(category, record)
 	{
 		// Instantiate the category store only once. If any changes are done to the
 		// categories, the code that did the change must call {#loadCategoriesStore}!
-		if ( !this.categoriesStore ){
-			this.loadCategoriesStore();
+        let storeId = this.getStoreIdFromRecords(record)
+		if ( !this.categoriesStore[storeId] ){
+			this.loadCategoriesStore(storeId);
 		}
 
-		var catIndex = this.categoriesStore.findExactCaseInsensitive('category', category);
+		var catIndex = this.categoriesStore[storeId].findExactCaseInsensitive('category', category);
 		if ( catIndex > -1 ){
-			return this.categoriesStore.getAt(catIndex).get('color');
+			return this.categoriesStore[storeId].getAt(catIndex).get('color');
 		}
 
 		return Zarafa.common.categories.Util.defaultCategoryColor;
@@ -408,9 +425,10 @@ Zarafa.common.categories.Util = {
 	 * and item header)
 	 *
 	 * @param {String} categories The category name
+	 * @param record The record holding the category
 	 * @return {String} The html of the categories as colored blocks
 	 */
-	getCategoriesHtml: function(categories)
+	getCategoriesHtml: function(categories, record)
 	{
 		// Compile the template string if not done yet
 		if (Ext.isString(this.categoriesHtmlTemplate)) {
@@ -422,7 +440,7 @@ Zarafa.common.categories.Util = {
 		var data = categories.map(function(category){
 			var dataEntry = {
 				name: Ext.util.Format.htmlEncode(category),
-				backgroundColor: this.getCategoryColor(category)
+				backgroundColor: this.getCategoryColor(category, record)
 			};
 			if ( dataEntry.backgroundColor ){
 				dataEntry.colorClass = Zarafa.core.ColorSchemes.getLuma(dataEntry.backgroundColor) < 200 ? 'zarafa-dark' : '';
@@ -465,5 +483,18 @@ Zarafa.common.categories.Util = {
 			}, this);
 
 		}, this);
-	}
+	},
+
+    getStoreIdFromRecords: function(records) {
+        if (!records || records.length === 0) {
+            return null;
+        }
+        let rec = Array.isArray(records) ? records[0] : records;
+        let listStore = rec.storeEntryId || rec.get('store_entryid');
+        if (listStore === container.getHierarchyStore().getDefaultStore().id) {
+            return null;
+        }
+        return listStore;
+    }
+
 };

@@ -142,8 +142,8 @@ Zarafa.common.categories.dialogs.CategoriesContentPanel = Ext.extend(Zarafa.core
 		store.save();
 
 		// Update the categoriesStore in Zarafa.common.categories.Util to make sure
-		// the rendering is up to date.
-		Zarafa.common.categories.Util.loadCategoriesStore();
+		// the rendering is up to date for the correct message store.
+		Zarafa.common.categories.Util.loadCategoriesStore(this.categoriesPanel.categoriesGrid.getStore());
 
 		// Update the currently loaded stores
 		if ( this.autoSave ){

@@ -58,7 +58,8 @@ Zarafa.common.categories.dialogs.CategoriesPanel = Ext.extend(Ext.Panel, {
 	 */
 	createCategoriesGrid: function(records)
 	{
-		var store = new Zarafa.common.categories.data.CategoriesStore();
+		var storeId = Zarafa.common.categories.Util.getStoreIdFromRecords(records);
+		var store = new Zarafa.common.categories.data.CategoriesStore({storeId: storeId});
 		store.addCategoriesFromMapiRecords(records);
 		store.sort([
 			{field: 'quickAccess', direction: 'DESC'},

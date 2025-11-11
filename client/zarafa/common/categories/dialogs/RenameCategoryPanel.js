@@ -50,7 +50,8 @@ Zarafa.common.categories.dialogs.RenameCategoryPanel = Ext.extend(Zarafa.core.ui
 		config = config || {};
 
 		if (Ext.isEmpty(config.store)) {
-			config.store = new Zarafa.common.categories.data.CategoriesStore();
+			var inferredStoreId = (config.recordStore && (config.recordStore.id || config.recordStore.storeId)) ? (config.recordStore.id || config.recordStore.storeId) : null;
+			config.store = new Zarafa.common.categories.data.CategoriesStore({storeId: inferredStoreId});
 		}
 
 		Ext.applyIf(config, {
@@ -248,7 +249,7 @@ Zarafa.common.categories.dialogs.RenameCategoryPanel = Ext.extend(Zarafa.core.ui
 		// If merging category is standard category then
 		// save it into merged_categories object of persistent setting model.
 		if(!Ext.isEmpty(category.get('standardIndex'))) {
-			container.getPersistentSettingsModel().set('grommunio/main/merged_categories/'+category.get('standardIndex'), category.get('category'));
+			this.store.persistentSettingsModel.set('grommunio/main/merged_categories/'+category.get('standardIndex'), category.get('category'));
 		}
 		var categoryRecord = this.findCategory(this.categoryName);
 		this.doRenameCategory(categoryRecord, category.get('category'));
@@ -272,7 +273,7 @@ Zarafa.common.categories.dialogs.RenameCategoryPanel = Ext.extend(Zarafa.core.ui
 		categoryRecord.commit();
 		this.store.save();
 
-		Zarafa.common.categories.Util.loadCategoriesStore();
+		Zarafa.common.categories.Util.loadCategoriesStore(this.store);
 
 		// Don't apply category on record as this dialog is called
 		// from managed category dialog. As managed category dialog
